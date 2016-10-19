@@ -10,7 +10,7 @@ int words = 0;
 char *cache = NULL;
 %}
 
-letter [a-zA-Z0-9]
+letter [a-zA-Z]
 digit [0-9]
 word ({letter}|{digit})+
 
@@ -19,9 +19,9 @@ word ({letter}|{digit})+
             int ret_code = 0;
             char *target = NULL;
             char *found = NULL;
-            // we add a 'space' after the word to ensure that the
-            // entire word is found. The space serves as the word
-            // boundary.
+            // we add a 'space' before and after the word to ensure that the
+            // entire word is found. The spaces serve as the word
+            // boundaries.
             ret_code = asprintf(&target, " %s ", yytext);
             if (ret_code < 0) {
                 perror("finding word failed");
