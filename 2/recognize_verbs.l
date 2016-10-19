@@ -2,28 +2,29 @@
 #include <stdio.h>
 %}
 
+wb [^a-zA-Z0-9]+
+
 %%
-[\t]+
-is |
-am |
-are |
-were |
-was |
-be |
-being |
-been |
-doing |
-does |
-did |
-will |
-would |
-should |
-can |
-could |
-has |
-have |
-had |
-go { printf("%s ", yytext);}
+{wb}is{wb} |
+{wb}am{wb} |
+{wb}are{wb} |
+{wb}were{wb} |
+{wb}was{wb} |
+{wb}be{wb} |
+{wb}being{wb} |
+{wb}been{wb} |
+{wb}doing{wb} |
+{wb}does{wb} |
+{wb}did{wb} |
+{wb}will{wb} |
+{wb}would{wb} |
+{wb}should{wb} |
+{wb}can{wb} |
+{wb}could{wb} |
+{wb}has{wb} |
+{wb}have{wb} |
+{wb}had{wb} |
+{wb}go{wb} { printf("%s ", yytext);}
 .|\n
 %%
 int main(int argc, char **argv) {
