@@ -1,9 +1,30 @@
 #!/usr/bin/env bash
 
+set -e
+
 lex_file="$(readlink -f "${1}")"
+yacc_file=""
 input_file="$(readlink -f "${2}")"
 lex_file_id="$(sed -e s/\\W/_/g <<< "${lex_file}")"
 tmp_dir="/tmp/${lex_file_id}"
+
+# colors
+COLOR_RESET="\e[0m"
+COLOR_WHITE="\033[1;37m"
+
+
+# logging to console
+log() {
+    echo -e "${COLOR_WHITE}${color}${1}${COLOR_RESET}"
+}
+
+
+# optional yacc spec file
+if [[ -n "${3}" ]]
+then
+    yacc_file="${input_file}"
+    input_file="$(readlink -f "${3}")"
+fi
 
 # we need a lex file
 if [[ -z "${lex_file}" ]]
@@ -25,6 +46,22 @@ pushd "${tmp_dir}" > /dev/null || {
     exit 1
 }
 
+
+c_files="lex.yy.c"
+
+
+if [[ -n "${yacc_file}" ]]
+then
+    log ">> yacc"
+    yacc -d "${yacc_file}"
+    c_files="${c_files} y.tab.c"
+fi
+
+log ">> lex"
 lex "${lex_file}"
-gcc lex.yy.c -lfl
+
+log ">> gcc"
+gcc ${c_files} -ll
+
+log ">> run"
 ./a.out "${input_file}"
