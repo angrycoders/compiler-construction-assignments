@@ -10,7 +10,7 @@ int num = 0;
 ^a+b$ {
     // 'yytext' includes the trailing 'b',
     // thus the 'minus one' accommodates for that
-    num = (int) strlen(yytext) - 1;
+    num = yyleng - 1;
 }
 .|\n
 
