@@ -6,10 +6,8 @@ int num = 0;
 
 %}
 
-word [a-zA-Z0-9]+
-
 %%
-(a)+b {
+^a+b$ {
     // 'yytext' includes the trailing 'b',
     // thus the 'minus one' accommodates for that
     num = (int) strlen(yytext) - 1;
