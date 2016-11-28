@@ -1,0 +1,8 @@
+# default output from 'yacc'
+y.tab.[c|h]
+
+# default output from 'lex'
+lex.yy.c
+
+# default output from 'gcc'
+a.out
