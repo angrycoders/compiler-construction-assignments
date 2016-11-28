@@ -6,10 +6,14 @@
  * The grammar:
  *
  *  program     : expression
- *  expression  : number operator number
- *              | '(' expression ')'
+ *  expression  : term plus term
+ *              | term
+ *  term        : factor mult factor
+ *              | factor
+ *  factor      : '(' expression ')'
  *              | number
- *  operator    : '+' | '*'
+ *  plus        : '+'
+ *  mult        : '*'
  *  number      : [0-9]+
  */
 
@@ -23,10 +27,8 @@
 #define false   0
 
 typedef enum {
-    EXPRESSION,
     LPAREN,
     RPAREN,
-    OPERATOR,
     PLUS,
     MULTIPLY,
     NUMBER,
@@ -36,8 +38,9 @@ int sym_val_int;
 FILE *input;
 
 int program(void);
-int expression(void);
-int operator(void);
+int expression(int *left);
+int term(void);
+int factor(void);
 int number(void);
 
 
@@ -67,12 +70,10 @@ void next_sym(void) {
         sym = RPAREN;
         return;
     case '+':
-        sym = OPERATOR;
-        sym_val_int = PLUS;
+        sym = PLUS;
         return;
     case '*':
-        sym = OPERATOR;
-        sym_val_int = MULTIPLY;
+        sym = MULTIPLY;
         return;
     }
 
@@ -106,15 +107,6 @@ int expect_sym(Symbol s) {
 }
 
 
-int operator(void) {
-    if (OPERATOR != sym) {
-        error("operator: Not an operator");
-    }
-    int value = sym_val_int;
-    next_sym();
-    return value;
-}
-
 int number(void) {
     if (NUMBER != sym) {
         error("number: Not a number");
@@ -124,25 +116,45 @@ int number(void) {
     return value;
 }
 
-int expression(void) {
+
+int factor(void) {
     int value;
 
     if (accept_sym(LPAREN)) {
-        value = expression();
+        value = expression(NULL);
         expect_sym(RPAREN);
-    } else if (NUMBER == sym) {
-        value = sym_val_int;
+    } else {
+        value = number();
+    }
+
+    return value;
+}
+
+
+int term(void) {
+    int value = factor();
+
+    if (MULTIPLY == sym) {
         next_sym();
-        if (OPERATOR == sym) {
-            int value_1 = value;
-            int op = operator();
-            int value_2 = number();
-            if (PLUS == op) {
-                value = value_1 + value_2;
-            } else {
-                value = value_1 * value_2;
-            }
-        }
+        value = value * factor();
+    }
+
+    return value;
+}
+
+
+int expression(int *left) {
+    int value;
+
+    if (left != NULL) {
+        value = *left;
+    } else {
+        value = term();
+    }
+
+    if (PLUS == sym) {
+        next_sym();
+        value = value + term();
     }
 
     return value;
@@ -150,8 +162,16 @@ int expression(void) {
 
 
 int program(void) {
+    int value;
+    int *left = NULL;
+
     next_sym();
-    return expression();
+    while (EOF != sym) {
+        value = expression(left);
+        left = &value;
+    }
+
+    return value;
 }
 
 
