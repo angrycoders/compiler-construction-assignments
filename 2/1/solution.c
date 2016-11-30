@@ -18,8 +18,10 @@
  */
 
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 
 
@@ -32,6 +34,7 @@ typedef enum {
     PLUS,
     MULTIPLY,
     NUMBER,
+    EOL,
 } Symbol;
 Symbol sym;
 int sym_val_int;
@@ -60,8 +63,10 @@ void next_sym(void) {
     case EOF:
         sym = EOF;
         return;
-    case ' ':
     case '\n':
+        sym = EOL;
+        return;
+    case ' ':
         return next_sym();
     case '(':
         sym = LPAREN;
@@ -166,7 +171,7 @@ int program(void) {
     int *left = NULL;
 
     next_sym();
-    while (EOF != sym) {
+    while (EOL != sym) {
         value = expression(left);
         left = &value;
     }
@@ -176,10 +181,43 @@ int program(void) {
 
 
 int main(int argc, char **argv) {
-    if (argc < 1) {
-        error("Missing input file");
+    int do_help = false;
+    int do_script = false;
+
+    if (argc > 1) {
+        do_help = NULL != strstr(argv[1], "--help");
+        do_script = !do_help;
     }
-    input = fopen(argv[1], "r");
-    printf("%d\n", program());
+
+    if (do_help) {
+        printf("usage:\n");
+        printf("\t%s              Enter interpreter mode\n", argv[0]);
+        printf("\t%s <path>       Use input file at <path>\n", argv[0]);
+        printf("\t%s --help       Show help information\n", argv[0]);
+        return 0;
+    }
+
+    if (do_script) {
+        input = fopen(argv[1], "r");
+        if (NULL == input) {
+            perror("main");
+            const char *msg =
+                "main: Could not open input file. "
+                "Please ensure that the file exists "
+                "and that you have provided the correct path to it.";
+            error(msg);
+        }
+
+        printf("%d\n", program());
+        return 0;
+    }
+
+    puts("Entering interpreter mode. Use Ctrl+C to quit.");
+    input = stdin;
+    while (EOF != sym) {
+        printf("> ");
+        printf("%d\n", program());
+    }
+
     return 0;
 }
